@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal Administrator - Persetujuan Klaim Pembayaran</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen">
+
+  <!-- LAYAR LOGIN PIN ADMINISTRATOR -->
+  <div id="loginGate" class="fixed inset-0 bg-slate-900 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-7 shadow-2xl text-center">
+      <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+      <h2 class="text-xl font-bold text-slate-900">Akses Administrator</h2>
+      <p class="text-xs text-slate-500 mt-1">Masukkan kode PIN staf keuangan untuk melihat resume dan persetujuan klaim.</p>
+      <input type="password" id="pinInput" placeholder="Masukkan PIN" onkeydown="if(event.key==='Enter') checkPin()" class="mt-5 w-full text-center tracking-widest text-lg font-bold px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
+      <p id="pinError" class="hidden text-xs text-rose-600 font-medium mt-2">PIN salah. Silakan coba lagi.</p>
+      <button onclick="checkPin()" class="mt-4 w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl transition">Buka Portal Admin</button>
+    </div>
+  </div>
+
+  <!-- KONTEN PORTAL ADMINISTRATOR -->
+  <div id="adminPortal" class="hidden">
+    <header class="bg-slate-900 text-white shadow-md">
+      <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span class="inline-block px-2.5 py-0.5 text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full mb-1">Administrator Mode</span>
+          <h1 class="text-xl md:text-2xl font-bold">Dashboard Resume & Persetujuan Klaim</h1>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="loadClaims()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+            <span>Refresh Data</span>
+          </button>
+          <button onclick="exportCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-xl text-xs font-semibold transition">
+            Export CSV
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <!-- RESUME STATISTIK -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 uppercase">Total Pengajuan Masuk</p>
+          <p id="statTotal" class="text-2xl font-bold text-slate-900 mt-1">0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-amber-600 uppercase">Menunggu Verifikasi</p>
+          <p id="statPending" class="text-2xl font-bold text-amber-600 mt-1">0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-indigo-600 uppercase">Disetujui / Selesai</p>
+          <p id="statApproved" class="text-2xl font-bold text-indigo-600 mt-1">0</p>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-emerald-600 uppercase">Total Nominal Klaim</p>
+          <p id="statNominal" class="text-xl font-bold text-emerald-700 mt-1">Rp 0</p>
+        </div>
+      </div>
+
+      <!-- PENCARIAN & TABEL PERSETUJUAN -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h2 class="font-bold text-slate-800">Daftar Pengajuan Klaim Siswa</h2>
+          <input type="text" id="searchInput" oninput="renderTable()" placeholder="Cari nama siswa, tiket, atau no registrasi..." class="px-3.5 py-2 border border-slate-300 rounded-xl text-xs w-full sm:w-72 focus:ring-2 focus:ring-indigo-500 outline-none" />
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase">
+                <th class="py-3.5 px-4">Tiket & Waktu</th>
+                <th class="py-3.5 px-4">Identitas Siswa</th>
+                <th class="py-3.5 px-4">Program & Camp</th>
+                <th class="py-3.5 px-4">Rekening Tujuan</th>
+                <th class="py-3.5 px-4">Nominal & Alasan</th>
+                <th class="py-3.5 px-4">Bukti</th>
+                <th class="py-3.5 px-4">Persetujuan Admin</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody" class="divide-y divide-slate-200 text-xs">
+              <tr><td colspan="7" class="py-8 text-center text-slate-400">Memuat data dari server...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // 1. TEMPELKAN URL WEB APP GOOGLE APPS SCRIPT YANG SAMA:
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfj-9E0RAISvb_YtIXeVhRP9v8heGmaquhRX_puH4DhTxc5l0ULQhBTgNLOsmflPh98Q/exec";
+    // 2. UBAH PIN ADMIN DI SINI:
+    const ADMIN_PIN = "080808";
+
+    let allClaims = [];
+
+    function checkPin() {
+      const val = document.getElementById("pinInput").value;
+      if (val === ADMIN_PIN) {
+        document.getElementById("loginGate").classList.add("hidden");
+        document.getElementById("adminPortal").classList.remove("hidden");
+        loadClaims();
+      } else {
+        document.getElementById("pinError").classList.remove("hidden");
+      }
+    }
+
+    async function loadClaims() {
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-500">Mengambil data terbaru dari Google Sheets...</td></tr>`;
+      try {
+        const res = await fetch(WEB_APP_URL);
+        const json = await res.json();
+        if (json.status === "success") {
+          allClaims = json.data;
+          updateStats();
+          renderTable();
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-rose-500">Gagal memuat data. Pastikan URL Web App sudah benar.</td></tr>`;
+      }
+    }
+
+    function updateStats() {
+      document.getElementById("statTotal").textContent = allClaims.length;
+      const pending = allClaims.filter(c => c.Status === "Menunggu Verifikasi").length;
+      const approved = allClaims.filter(c => c.Status === "Disetujui" || c.Status === "Selesai / Ditransfer").length;
+      const totalRp = allClaims.reduce((sum, c) => sum + (Number(c.Nominal) || 0), 0);
+
+      document.getElementById("statPending").textContent = pending;
+      document.getElementById("statApproved").textContent = approved;
+      document.getElementById("statNominal").textContent = "Rp " + totalRp.toLocaleString("id-ID");
+    }
+
+    function renderTable() {
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = allClaims.filter(c =>
+        String(c.NamaSiswa).toLowerCase().includes(q) ||
+        String(c.TicketID).toLowerCase().includes(q) ||
+        String(c.NoRegistrasi).toLowerCase().includes(q)
+      );
+
+      const tbody = document.getElementById("tableBody");
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">Belum ada data klaim yang sesuai.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => {
+        const badgeColor =
+          c.Status === "Selesai / Ditransfer" ? "bg-emerald-100 text-emerald-800 border-emerald-200" :
+          c.Status === "Disetujui" ? "bg-indigo-100 text-indigo-800 border-indigo-200" :
+          c.Status === "Ditolak" ? "bg-rose-100 text-rose-800 border-rose-200" :
+          "bg-amber-100 text-amber-800 border-amber-200";
+
+        return `
+          <tr class="hover:bg-slate-50 align-top">
+            <td class="py-3.5 px-4">
+              <span class="font-bold text-indigo-600 block">${c.TicketID}</span>
+              <span class="text-[11px] text-slate-400">${c.Timestamp}</span>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900">${c.NamaSiswa}</div>
+              <div class="text-slate-500">Reg: ${c.NoRegistrasi}</div>
+              <div class="text-slate-500">HP: ${c.NoPonsel}</div>
+            </td>
+            <td class="py-3.5 px-4">
+              <span class="font-semibold text-slate-800 block">${c.Program}</span>
+              <span class="text-slate-500">${c.Durasi} • ${c.Grade}</span>
+            </td>
+            <td class="py-3.5 px-4">
+              <span class="font-bold text-slate-800 block">${c.NamaBank} - ${c.NoRekening}</span>
+              <span class="text-slate-500 uppercase">${c.NamaPemilik}</span>
+            </td>
+            <td class="py-3.5 px-4 max-w-xs">
+              <span class="font-bold text-emerald-700 block">Rp ${Number(c.Nominal).toLocaleString("id-ID")}</span>
+              <p class="text-slate-600 mt-1 line-clamp-2" title="${c.Alasan}">${c.Alasan}</p>
+            </td>
+            <td class="py-3.5 px-4">
+              ${c.BuktiTransfer && c.BuktiTransfer !== "-"
+                ? `<a href="${c.BuktiTransfer}" target="_blank" class="inline-block px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 text-indigo-600 font-semibold rounded-lg border border-slate-200">Lihat File</a>`
+                : `<span class="text-slate-400">-</span>`}
+            </td>
+            <td class="py-3.5 px-4">
+              <select onchange="changeStatus('${c.TicketID}', this.value)" class="px-2.5 py-1.5 rounded-lg border font-semibold text-xs outline-none ${badgeColor}">
+                <option value="Menunggu Verifikasi" ${c.Status === "Menunggu Verifikasi" ? "selected" : ""}>Menunggu Verifikasi</option>
+                <option value="Disetujui" ${c.Status === "Disetujui" ? "selected" : ""}>Disetujui</option>
+                <option value="Selesai / Ditransfer" ${c.Status === "Selesai / Ditransfer" ? "selected" : ""}>Selesai / Ditransfer</option>
+                <option value="Ditolak" ${c.Status === "Ditolak" ? "selected" : ""}>Ditolak</option>
+              </select>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function changeStatus(ticketId, newStatus) {
+      try {
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "updateStatus", ticketId, newStatus })
+        });
+        const json = await res.json();
+        if (json.status === "success") {
+          const idx = allClaims.findIndex(c => c.TicketID === ticketId);
+          if (idx > -1) allClaims[idx].Status = newStatus;
+          updateStats();
+          renderTable();
+        } else {
+          alert("Gagal memperbarui status: " + json.message);
+        }
+      } catch (err) {
+        alert("Gagal terhubung ke server saat mengubah status.");
+      }
+    }
+
+    function exportCSV() {
+      if (!allClaims.length) return;
+      const headers = Object.keys(allClaims[0]);
+      const csvRows = [
+        headers.join(","),
+        ...allClaims.map(row => headers.map(h => `"${String(row[h] || "").replace(/"/g, '""')}"`).join(","))
+      ];
+      const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Rekap_Klaim_Siswa_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+  </script>
+</body>
+</html>

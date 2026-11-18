@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pengajuan Klaim Kelebihan Pembayaran Siswa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- HEADER KHUSUS PUBLIK (TANPA TOMBOL ADMIN) -->
+  <header class="bg-slate-900 text-white shadow-md">
+    <div class="max-w-4xl mx-auto px-4 py-5 flex items-center justify-between">
+      <div>
+        <span class="inline-block px-2.5 py-0.5 text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full mb-1">Portal Pengajuan Siswa</span>
+        <h1 class="text-xl md:text-2xl font-bold tracking-tight">Klaim Kelebihan Pembayaran</h1>
+        <p class="text-slate-300 text-xs md:text-sm mt-0.5">Silakan lengkapi data siswa, rekening pengembalian, dan bukti transfer sebelumnya.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-8">
+    <!-- KARTU KONFIRMASI BERHASIL -->
+    <div id="successCard" class="hidden bg-white rounded-2xl shadow-lg border border-emerald-200 p-6 md:p-8 text-center">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <h2 class="text-2xl font-bold text-slate-900">Pengajuan Klaim Berhasil Dikirim!</h2>
+      <p class="text-slate-600 text-sm mt-1">Data Anda telah masuk ke sistem administrasi keuangan untuk proses verifikasi.</p>
+      
+      <div class="mt-6 bg-slate-50 border border-slate-200 rounded-xl p-4 max-w-md mx-auto">
+        <p class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Nomor Tiket Pengajuan Anda</p>
+        <p id="resTicketId" class="text-2xl font-extrabold text-indigo-600 tracking-wide mt-1">-</p>
+        <div class="mt-3 pt-3 border-t border-slate-200 text-left text-xs space-y-1.5 text-slate-600">
+          <div class="flex justify-between"><span>Nama Siswa:</span><strong id="resNama" class="text-slate-900">-</strong></div>
+          <div class="flex justify-between"><span>Program:</span><strong id="resProgram" class="text-slate-900">-</strong></div>
+          <div class="flex justify-between"><span>Nominal Klaim:</span><strong id="resNominal" class="text-emerald-700">-</strong></div>
+          <div class="flex justify-between"><span>Rekening Tujuan:</span><strong id="resRekening" class="text-slate-900">-</strong></div>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-500 mt-4">Simpan atau tangkap layar (*screenshot*) nomor tiket di atas sebagai bukti pengajuan.</p>
+      <button onclick="resetForm()" class="mt-6 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow transition">
+        Ajukan Klaim Baru
+      </button>
+    </div>
+
+    <!-- FORMULIR PENGAJUAN -->
+    <form id="claimForm" class="space-y-6">
+      <!-- INFORMASI 1: DATA SISWA & PROGRAM -->
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-3">
+          <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">1</span>
+          <h2 class="font-bold text-slate-800">Informasi Data Siswa & Program Kursus</h2>
+        </div>
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Nama Lengkap Siswa <span class="text-rose-500">*</span></label>
+            <input type="text" id="namaSiswa" required placeholder="Masukkan nama lengkap siswa" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Nomor Registrasi <span class="text-rose-500">*</span></label>
+            <input type="text" id="noRegistrasi" required placeholder="Contoh: 101010" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Nomor Ponsel / WhatsApp <span class="text-rose-500">*</span></label>
+            <input type="tel" id="noPonsel" required placeholder="Contoh: 081234567890" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Program Kursus <span class="text-rose-500">*</span></label>
+            <select id="program" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">-- Pilih Program Kursus --</option>
+              <option value="Intensive">Intensive</option>
+              <option value="Integrated Speaking">Integrated Speaking</option>
+              <option value="Leveling A1">Leveling A1</option>
+              <option value="Leveling A2">Leveling A2</option>
+              <option value="Leveling B1">Leveling B1</option>
+              <option value="Leveling B2">Leveling B2</option>
+              <option value="Leveling C1">Leveling C1</option>
+              <option value="Leveling C2">Leveling C2</option>
+              <option value="TOEFL">TOEFL</option>
+              <option value="IELTS">IELTS</option>
+              <option value="Holiday">Holiday</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Durasi Program <span class="text-rose-500">*</span></label>
+            <select id="durasi" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">-- Pilih Durasi --</option>
+              <option value="1 Minggu">1 Minggu</option>
+              <option value="2 Minggu">2 Minggu</option>
+              <option value="1 Bulan">1 Bulan</option>
+              <option value="2 Bulan">2 Bulan</option>
+              <option value="3 Bulan">3 Bulan</option>
+              <option value="4 Bulan">4 Bulan</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Grade / Tipe Camp <span class="text-rose-500">*</span></label>
+            <select id="grade" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">-- Pilih Grade Camp --</option>
+              <option value="Camp AC">Camp AC</option>
+              <option value="Grade 1">Grade 1</option>
+              <option value="Grade 2">Grade 2</option>
+              <option value="VIP">VIP</option>
+              <option value="Private Camp">Private Camp</option>
+              <option value="Superior">Superior</option>
+              <option value="Non Camp">Non Camp</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- INFORMASI 2: REKENING PENGEMBALIAN & BUKTI TRANSFER -->
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-3">
+          <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">2</span>
+          <h2 class="font-bold text-slate-800">Data Rekening Pengembalian & Bukti Transfer</h2>
+        </div>
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Nama Bank Tujuan <span class="text-rose-500">*</span></label>
+            <select id="namaBank" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="">-- Pilih Bank --</option>
+              <option value="BCA">BCA</option>
+              <option value="BRI">BRI</option>
+              <option value="BNI">BNI</option>
+              <option value="Mandiri">Mandiri</option>
+              <option value="BSI">BSI (Bank Syariah Indonesia)</option>
+              <option value="CIMB Niaga">CIMB Niaga</option>
+              <option value="Bank Danamon">Bank Danamon</option>
+              <option value="Bank Permata">Bank Permata</option>
+              <option value="BTN">BTN</option>
+              <option value="Bank Jatim">Bank Jatim</option>
+              <option value="Bank Lainnya">Bank Lainnya</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Nomor Rekening <span class="text-rose-500">*</span></label>
+            <input type="text" id="noRekening" required placeholder="Masukkan nomor rekening" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Nama Pemilik Rekening <span class="text-rose-500">*</span></label>
+            <input type="text" id="namaPemilik" required placeholder="Sesuai buku tabungan" oninput="this.value = this.value.toUpperCase()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm uppercase focus:ring-2 focus:ring-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Nominal Klaim Kelebihan (Rp) <span class="text-rose-500">*</span></label>
+            <input type="text" id="nominalDisplay" required placeholder="Contoh: 250.000" oninput="formatRupiah(this)" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-emerald-700 focus:ring-2 focus:ring-indigo-500 outline-none" />
+            <input type="hidden" id="nominalRaw" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Upload Bukti Transfer Pembayaran Sebelumnya <span class="text-rose-500">*</span></label>
+            <input type="file" id="buktiFile" accept="image/*,.pdf" required class="w-full text-sm text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-slate-300 rounded-xl p-1.5" />
+            <p class="text-xs text-slate-400 mt-1">Format: JPG, PNG, atau PDF (Maksimal 4 MB).</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- INFORMASI 3: ALASAN KLAIM -->
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-3">
+          <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">3</span>
+          <h2 class="font-bold text-slate-800">Alasan Pengajuan Klaim Kelebihan Pembayaran</h2>
+        </div>
+        <div class="p-6">
+          <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Keterangan / Rincian Alasan Klaim <span class="text-rose-500">*</span></label>
+          <textarea id="alasan" rows="3" required placeholder="Jelaskan penyebab kelebihan pembayaran (misal: salah nominal transfer, perubahan durasi program, atau pindah tipe camp)..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+        </div>
+      </section>
+
+      <div class="flex justify-end">
+        <button type="submit" id="submitBtn" class="w-full md:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-200 transition flex items-center justify-center gap-2">
+          <span>Kirim Pengajuan Klaim</span>
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    // TEMPELKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI BAWAH INI:
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfj-9E0RAISvb_YtIXeVhRP9v8heGmaquhRX_puH4DhTxc5l0ULQhBTgNLOsmflPh98Q/exec";
+
+    function formatRupiah(el) {
+      let raw = el.value.replace(/[^0-9]/g, "");
+      document.getElementById("nominalRaw").value = raw;
+      el.value = raw ? parseInt(raw, 10).toLocaleString("id-ID") : "";
+    }
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.getElementById("claimForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      if (WEB_APP_URL.includes("PASTE_URL")) {
+        alert("Konfigurasi URL Google Apps Script belum diisi oleh administrator.");
+        return;
+      }
+
+      const fileInput = document.getElementById("buktiFile");
+      const file = fileInput.files[0];
+      if (file && file.size > 4 * 1024 * 1024) {
+        alert("Ukuran file maksimal 4 MB. Silakan kompres gambar terlebih dahulu.");
+        return;
+      }
+
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg> <span>Mengirim Data & Bukti Transfer...</span>`;
+
+      try {
+        const base64File = await readFileAsBase64(file);
+        const ticketId = "KLM-" + new Date().getFullYear() + "-" + Math.floor(1000 + Math.random() * 9000);
+
+        const payload = {
+          action: "create",
+          ticketId: ticketId,
+          namaSiswa: document.getElementById("namaSiswa").value.trim(),
+          noRegistrasi: document.getElementById("noRegistrasi").value.trim(),
+          noPonsel: document.getElementById("noPonsel").value.trim(),
+          program: document.getElementById("program").value,
+          durasi: document.getElementById("durasi").value,
+          grade: document.getElementById("grade").value,
+          namaBank: document.getElementById("namaBank").value,
+          noRekening: document.getElementById("noRekening").value.trim(),
+          namaPemilik: document.getElementById("namaPemilik").value.trim(),
+          nominal: document.getElementById("nominalRaw").value,
+          alasan: document.getElementById("alasan").value.trim(),
+          fileData: base64File,
+          fileName: file.name,
+          mimeType: file.type
+        };
+
+        const response = await fetch(WEB_APP_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+
+        if (result.status === "success") {
+          document.getElementById("resTicketId").textContent = ticketId;
+          document.getElementById("resNama").textContent = payload.namaSiswa;
+          document.getElementById("resProgram").textContent = `${payload.program} (${payload.durasi} - ${payload.grade})`;
+          document.getElementById("resNominal").textContent = "Rp " + parseInt(payload.nominal, 10).toLocaleString("id-ID");
+          document.getElementById("resRekening").textContent = `${payload.namaBank} - ${payload.noRekening}`;
+
+          document.getElementById("claimForm").classList.add("hidden");
+          document.getElementById("successCard").classList.remove("hidden");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          alert("Gagal mengirim pengajuan: " + result.message);
+        }
+      } catch (err) {
+        alert("Terjadi gangguan jaringan saat mengirim data. Silakan coba lagi.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>Kirim Pengajuan Klaim</span>`;
+      }
+    });
+
+    function resetForm() {
+      document.getElementById("claimForm").reset();
+      document.getElementById("successCard").classList.add("hidden");
+      document.getElementById("claimForm").classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
